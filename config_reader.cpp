@@ -37,6 +37,28 @@ void ConfigReader::get_cam_info()
     }
 }
 
+void ConfigReader::get_yolov5_info()
+{
+    yolov5_config_.input_width = atoi(ini_reader_.getValue("yolov5", "Input_Width").c_str());
+    yolov5_config_.input_height = atoi(ini_reader_.getValue("yolov5", "Input_Height").c_str());
+    yolov5_config_.score_threshold = atof(ini_reader_.getValue("yolov5", "Score_Threshold").c_str());
+    yolov5_config_.nms_threshold = atof(ini_reader_.getValue("yolov5", "Nms_Threshold").c_str());
+    yolov5_config_.confidence_threshold = atof(ini_reader_.getValue("yolov5", "Confidence_Threshold").c_str());
+    strcpy_s(yolov5_config_.class_list, ini_reader_.getValue("yolov5", "Class_List").c_str());
+    yolov5_config_.batch_size = atoi(ini_reader_.getValue("yolov5", "Batch_Size").c_str());
+    if (yolov5_config_.batch_size != cam_num_)
+    {
+        std::cout << "Error: Batch size is not equal camera number!" << std::endl;
+        yolov5_config_.batch_size = cam_num_;
+    }
+    else
+    {
+        std::cout << "Batch size is equal to camera number!" << std::endl;
+    }
+    strcpy_s(yolov5_config_.model_path, ini_reader_.getValue("yolov5", "Model_Path").c_str());
+
+}
+
 void ConfigReader::print_cam_info()
 {
     for (int i = 0; i < cam_num_; i++)
@@ -50,4 +72,9 @@ void ConfigReader::print_cam_info()
         std::cout << "Height: " << cam_list_[i].height << std::endl;
         std::cout << "Fps: " << cam_list_[i].fps << std::endl;
     }
+}
+
+void ConfigReader::print_yolov5_info()
+{
+    // To Do
 }

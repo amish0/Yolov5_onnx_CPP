@@ -8,7 +8,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # add opencv lib
 # Add the executable (main executable)
-add_library(custom_libray config_reader.cpp display_frame.cpp ini_reader.cpp camloader.cpp)
+add_library(custom_libray config_reader.cpp ini_reader.cpp camloader.cpp yolov5_model.cpp)
 
 add_executable(ReadWebCamThread main.cpp)
 
