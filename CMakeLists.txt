@@ -8,12 +8,16 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # add opencv lib
 # Add the executable (main executable)
-add_library(custom_libray config_reader.cpp ini_reader.cpp camloader.cpp yolov5_model.cpp)
+# it will create library file in build folder but you have to keep all the source file in SOURCE Directory
+# add_library(custom_libray config_reader.cpp ini_reader.cpp camloader.cpp yolov5_model.cpp)
 
-add_executable(ReadWebCamThread main.cpp)
+# Adding include directory
+include_directories(${PROJECT_SOURCE_DIR}/include)
+file(GLOB SOURCE_FILES src/*.cpp)
+add_executable(ReadWebCamThread main.cpp ${SOURCE_FILES})
 
 target_link_libraries(ReadWebCamThread ${OpenCV_LIBS})
-target_link_libraries(ReadWebCamThread custom_libray)
+# target_link_libraries(ReadWebCamThread custom_libray)
 
 # target_link_libraries(ReadWebCamThread ${TensorRT_LIBRARIES})
 

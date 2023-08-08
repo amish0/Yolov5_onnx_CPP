@@ -76,5 +76,13 @@ void ConfigReader::print_cam_info()
 
 void ConfigReader::print_yolov5_info()
 {
-    // To Do
+    std::cout << "\n\nYolov5 info:" << std::endl;
+    std::cout << "Input_Width: " << yolov5_config_.input_width << std::endl;
+    std::cout << "Input_Height: " << yolov5_config_.input_height << std::endl;
+    std::cout << "Score_Threshold: " << yolov5_config_.score_threshold << std::endl;
+    std::cout << "Nms_Threshold: " << yolov5_config_.nms_threshold << std::endl;
+    std::cout << "Confidence_Threshold: " << yolov5_config_.confidence_threshold << std::endl;
+    std::cout << "Class_List: " << yolov5_config_.class_list << std::endl;
+    std::cout << "Batch_Size: " << yolov5_config_.batch_size << std::endl;
+    std::cout << "Model_Path: " << yolov5_config_.model_path << std::endl;
 }
