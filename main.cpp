@@ -12,6 +12,9 @@
 #include "config_reader.h"
 #include "camloader.h"
 #include "yolov5_model.h"
+#include "sort_tracker.h"
+// #include "Hungarian.h"
+// #include "KalmanTracker.h"
 
 int main(int argc, char **argv)
 {
@@ -27,7 +30,7 @@ int main(int argc, char **argv)
     std::vector<cv::Mat> frames(cam_num);
     webcam.init();
     webcam.start();
-
+    SortTracker object_tracker(int max_age = 5, int min_hits = 3, double iouThreshold = 0.3);
     int frame_count = 0;
     double fps = -1;
     int total_frames = 0;
