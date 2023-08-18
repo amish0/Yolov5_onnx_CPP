@@ -10,33 +10,36 @@
 #include "Hungarian.h"
 #include "KalmanTracker.h"
 
-#include "opencv2/tracking.hpp"
-#include "opencv2/highgui.hpp"
+#include <opencv2/tracking.hpp>
+#include <opencv2/highgui.hpp>
+#include "config.h"
 
 using namespace std;
 using namespace cv;
 
 // Uncomment the following line to enable tracking output to console
-typedef struct TrackingBox
-{
-    int frame;
-    int id;
-    Rect_<float> box;
-} TrackingBox;
+// typedef struct Detection
+// {
+//     int frame;
+//     int id;
+//     Rect_<float> box;
+// } Detection;
 
 class SortTracker
 {
 public:
-    SortTracker(int max_age, int min_hits, double iouThreshold);
+    SortTracker();
+	// SortTracker(int max_age, int min_hits, double iouThreshold);
     ~SortTracker();
-    double GetIOU(Rect_<float> bb_test, Rect_<float> bb_gt);
-	vector<TrackingBox> Update(vector<TrackingBox> boxes);
-
+	void init(int max_age, int min_hits, double iouThreshold);
+    double get_iou(cv::Rect bb_test, cv::Rect bb_gt);
+	vector<Detection> update(vector<Detection> boxes);
 
 private:
     int max_age;
 	int min_hits;
 	double iouThreshold;
+	int frame_count = 0;
     vector<KalmanTracker> trackers;
     vector<Rect_<float>> predictedBoxes;
 	vector<vector<double>> iouMatrix;
@@ -46,10 +49,9 @@ private:
 	set<int> allItems;
 	set<int> matchedItems;
 	vector<cv::Point> matchedPairs;
-	vector<TrackingBox> frameTrackingResult;
+	vector<Detection> frameTrackingResult;
 	unsigned int trkNum = 0;
 	unsigned int detNum = 0;
-
 };
 
 #endif // SORTTRACKER_H

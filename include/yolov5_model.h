@@ -9,13 +9,7 @@
 #include <chrono>
 #include <thread>
 #include "config_reader.h"
-
-struct Detection
-{
-    int class_id;
-    float confidence;
-    cv::Rect box;
-};
+#include "config.h"
 
 class YoloV5Model
 {

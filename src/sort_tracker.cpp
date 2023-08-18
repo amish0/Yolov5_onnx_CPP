@@ -1,11 +1,24 @@
 #include "sort_tracker.h"
 
-SortTracker::SortTracker(int max_age, int min_hits, double iouThreshold)
+// SortTracker::SortTracker(int max_age, int min_hits, double iouThreshold)
+// {
+//     this->max_age = max_age;
+//     this->min_hits = min_hits;
+//     this->iouThreshold = iouThreshold;
+//     std::cout << "SortTracker constructor called" << std::endl;
+// }
+
+SortTracker::SortTracker()
+{
+    std::cout << "SortTracker constructor called" << std::endl;
+}
+
+void SortTracker::init(int max_age, int min_hits, double iouThreshold)
 {
     this->max_age = max_age;
     this->min_hits = min_hits;
     this->iouThreshold = iouThreshold;
-    std::cout << "SortTracker constructor called" << std::endl;
+    std::cout << "SortTracker init called" << std::endl;
 }
 
 SortTracker::~SortTracker()
@@ -13,7 +26,7 @@ SortTracker::~SortTracker()
     std::cout << "SortTracker destructor called" << std::endl;
 }
 
-double SortTracker::GetIOU(Rect_<float> bb_test, Rect_<float> bb_gt)
+double SortTracker::get_iou(cv::Rect bb_test, cv::Rect bb_gt)
 {
     float in = (bb_test & bb_gt).area();
     float un = bb_test.area() + bb_gt.area() - in;
@@ -24,9 +37,10 @@ double SortTracker::GetIOU(Rect_<float> bb_test, Rect_<float> bb_gt)
     return (double)(in / un);
 }
 
-vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
+vector<Detection> SortTracker::update(vector<Detection> boxes)
 {
     // Initialize Tracker
+    frame_count += 1; // frame_count += 1
     if (trackers.size() == 0)
     {
         // If no trackers yet, then every observation is new and so we add each observation to trackers
@@ -36,13 +50,16 @@ vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
             KalmanTracker trk = KalmanTracker(boxes[i].box);
             trackers.push_back(trk);
         }
+        std::cout << "trackers.size() == 0" << std::endl;
+        std::cout << "initialize kalman trackers using first detections." << std::endl;
     }
 
     // 1. Predict
+    // std::cout << "1. Predict" << std::endl;
     predictedBoxes.clear();
     for (auto it = trackers.begin(); it != trackers.end();)
     {
-        Rect_<float> pBox = (*it).predict();
+        cv::Rect pBox = (*it).predict();
         if (pBox.x >= 0 && pBox.y >= 0)
         {
             predictedBoxes.push_back(pBox);
@@ -54,10 +71,14 @@ vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
             // std::cout << "Box invalid at frame " << boxes[0].frame << std::endl;
         }
     }
+    // std::cout << "Prediction ended" << std::endl;
 
     // 2. associate detections to tracked object (both represented as bounding boxes)
+    // std::cout << "2. associate detections to tracked object (both represented as bounding boxes)" << std::endl;
     trkNum = predictedBoxes.size();
     detNum = boxes.size();
+    std::cout << "trkNum: " << trkNum << std::endl;
+    std::cout << "detNum: " << detNum << std::endl;
     iouMatrix.clear();
     iouMatrix.resize(trkNum, vector<double>(detNum, 0));
     for (unsigned int i = 0; i < trkNum; i++) // compute iou matrix as a distance matrix
@@ -65,15 +86,22 @@ vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
         for (unsigned int j = 0; j < detNum; j++)
         {
             // use 1-iou because the hungarian algorithm computes a minimum-cost assignment.
-            iouMatrix[i][j] = 1 - GetIOU(predictedBoxes[i], boxes[j].box);
+            iouMatrix[i][j] = 1 - get_iou(predictedBoxes[i], boxes[j].box);
         }
     }
 
+    // std::cout << "association middle" << std::endl;
     // solve the assignment problem using hungarian algorithm.
     // the resulting assignment is [track(prediction) : detection], with len=preNum
     HungarianAlgorithm HungAlgo;
+    // std::cout << "association middle 1" << std::endl;
     assignment.clear();
+    // std::cout << "association middle 1.1" << std::endl;
+    // std::cout << "iouMatrix.size(): " << iouMatrix.size() << std::endl;
+    // std::cout << "iouMatrix[0].size(): " << iouMatrix[0].size() << std::endl;
+    // std::cout << "assignment.size(): " << assignment.size() << std::endl;
     HungAlgo.Solve(iouMatrix, assignment);
+    // std::cout << "association middle 2" << std::endl;
     // find matches, unmatched_detections and unmatched_predictions
     unmatchedTrajectories.clear();
     unmatchedDetections.clear();
@@ -99,9 +127,10 @@ vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
     }
     else
     {
-        ;
+        // TO DO
     }
 
+    // std::cout << "association end" << std::endl;
     // filter out matched with low IOU
     matchedPairs.clear();
     for (unsigned int i = 0; i < trkNum; ++i)
@@ -141,18 +170,17 @@ vector<TrackingBox> SortTracker::Update(vector<TrackingBox> boxes)
     for (auto it = trackers.begin(); it != trackers.end();)
     {
         if (((*it).m_time_since_update < 1) &&
-            ((*it).m_hit_streak >= min_hits || boxes[0].frame <= min_hits))
+            ((*it).m_hit_streak >= min_hits || frame_count <= min_hits))
         {
-            TrackingBox res;
+            Detection res;
             res.box = (*it).get_state();
-            res.id = (*it).m_id + 1;
-            res.frame = boxes[0].frame;
+            res.class_id = (*it).m_id + 1;
+            res.confidence = 1;
             frameTrackingResult.push_back(res);
             it++;
         }
         else
             it++;
     }
-
     return frameTrackingResult;
 }

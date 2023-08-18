@@ -13,6 +13,7 @@
 #include "camloader.h"
 #include "yolov5_model.h"
 #include "sort_tracker.h"
+#include "config.h"
 // #include "Hungarian.h"
 // #include "KalmanTracker.h"
 
@@ -30,7 +31,13 @@ int main(int argc, char **argv)
     std::vector<cv::Mat> frames(cam_num);
     webcam.init();
     webcam.start();
-    SortTracker object_tracker(int max_age = 5, int min_hits = 3, double iouThreshold = 0.3);
+    // create array of an object of SortTracker class length of array is cam_num
+    SortTracker *obj_tracker = new SortTracker[cam_num];
+    for (int i = 0; i < cam_num; ++i)
+    {
+        obj_tracker[i].init(MAX_AGES, MIN_HITS, IOU_THRESHOLD);
+    }
+    // SortTracker object_tracker(int max_age = 5, int min_hits = 3, double iouThreshold = 0.3);
     int frame_count = 0;
     double fps = -1;
     int total_frames = 0;
@@ -44,6 +51,17 @@ int main(int argc, char **argv)
         std::cout << "frame size" << frames.size() << std::endl;
         output.resize(frames.size());
         yolov5.detect(frames, output);
+        for (int i = 0; i < cam_num; ++i)
+        {
+            if (output[i].size() > 0)
+            {
+                output[i] = obj_tracker[i].update(output[i]);
+            }
+            else
+            {
+                std::cout << "output[i].size() <= 0" << std::endl;
+            }
+        }
         frame_count++;
         total_frames++;
         int detections = output.size();
@@ -58,9 +76,10 @@ int main(int argc, char **argv)
 
                 const auto color = yolov5.colors[classId % yolov5.colors.size()];
                 cv::rectangle(frames[i], box, color, 3);
-                //std::cout<< "box.y - 20: "<< box.y - 20 << "\nbox.y - 5: " << box.y - 5 << std::endl;
+                // std::cout<< "box.y - 20: "<< box.y - 20 << "\nbox.y - 5: " << box.y - 5 << std::endl;
                 cv::rectangle(frames[i], cv::Point(box.x, box.y - 20), cv::Point(box.x + box.width, box.y), color, cv::FILLED);
-                cv::putText(frames[i], yolov5.class_name[classId].c_str(), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+                // cv::putText(frames[i], yolov5.class_name[classId].c_str(), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+                cv::putText(frames[i], std::to_string(classId), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
             }
         }
 
