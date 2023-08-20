@@ -48,6 +48,7 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
         {
             // initialize kalman trackers using first detections.
             KalmanTracker trk = KalmanTracker(boxes[i].box);
+            class_id.push_back(boxes[i].class_id);
             trackers.push_back(trk);
         }
         std::cout << "trackers.size() == 0" << std::endl;
@@ -57,6 +58,7 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
     // 1. Predict
     // std::cout << "1. Predict" << std::endl;
     predictedBoxes.clear();
+    int counter_trackers = 0; // added by me
     for (auto it = trackers.begin(); it != trackers.end();)
     {
         cv::Rect pBox = (*it).predict();
@@ -64,10 +66,13 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
         {
             predictedBoxes.push_back(pBox);
             it++;
+            counter_trackers += 1; // added by me
         }
         else
         {
             it = trackers.erase(it);
+            class_id.erase(class_id.begin() + counter_trackers); // added by me
+
             // std::cout << "Box invalid at frame " << boxes[0].frame << std::endl;
         }
     }
@@ -77,8 +82,8 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
     // std::cout << "2. associate detections to tracked object (both represented as bounding boxes)" << std::endl;
     trkNum = predictedBoxes.size();
     detNum = boxes.size();
-    std::cout << "trkNum: " << trkNum << std::endl;
-    std::cout << "detNum: " << detNum << std::endl;
+    // std::cout << "trkNum: " << trkNum << std::endl;
+    // std::cout << "detNum: " << detNum << std::endl;
     iouMatrix.clear();
     iouMatrix.resize(trkNum, vector<double>(detNum, 0));
     for (unsigned int i = 0; i < trkNum; i++) // compute iou matrix as a distance matrix
@@ -156,6 +161,7 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
         trkIdx = matchedPairs[i].x;
         detIdx = matchedPairs[i].y;
         trackers[trkIdx].update(boxes[detIdx].box);
+        class_id[trkIdx]=boxes[detIdx].class_id;
     }
 
     // create and initialise new trackers for unmatched detections
@@ -163,10 +169,12 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
     {
         KalmanTracker tracker = KalmanTracker(boxes[umd].box);
         trackers.push_back(tracker);
+        class_id.push_back(boxes[umd].class_id);
     }
 
     // get trackers' output
     frameTrackingResult.clear();
+    counter_trackers = 0; // added by me
     for (auto it = trackers.begin(); it != trackers.end();)
     {
         if (((*it).m_time_since_update < 1) &&
@@ -174,13 +182,15 @@ vector<Detection> SortTracker::update(vector<Detection> boxes)
         {
             Detection res;
             res.box = (*it).get_state();
-            res.class_id = (*it).m_id + 1;
+            res.class_id = class_id[counter_trackers]; // added by me
+            res.track_id=(*it).m_id + 1;
             res.confidence = 1;
             frameTrackingResult.push_back(res);
             it++;
         }
         else
             it++;
+        counter_trackers += 1; // added by me
     }
     return frameTrackingResult;
 }
