@@ -41,6 +41,7 @@ private:
 	double iouThreshold;
 	int frame_count = 0;
     vector<KalmanTracker> trackers;
+	vector<int> class_id;
     vector<Rect_<float>> predictedBoxes;
 	vector<vector<double>> iouMatrix;
 	vector<int> assignment;
