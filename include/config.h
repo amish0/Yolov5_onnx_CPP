@@ -16,4 +16,11 @@ struct Detection
     cv::Rect box;
 };
 
+struct cam_info_t
+{
+    char name[20];
+    char location[20];
+    int id;
+};
+
 #endif // CONFIG_H
