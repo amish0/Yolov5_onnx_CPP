@@ -43,14 +43,22 @@ int main(int argc, char **argv)
     int total_frames = 0;
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<std::vector<Detection>> output;
+    bool testcase = true;
 
     while (true)
     {
         webcam.next(frames);
         output.clear();
-        std::cout << "frame size" << frames.size() << std::endl;
+        // std::cout << "frame size" << frames.size() << std::endl;
         output.resize(frames.size());
         yolov5.detect(frames, output);
+        if (testcase)
+        {
+            std::cout << "frames.size(): " << frames.size() << std::endl;
+            std::cout << "frames[0].size(): " << frames[0].size() << std::endl;
+            testcase = false;
+        }
+
         for (int i = 0; i < cam_num; ++i)
         {
             if (output[i].size() > 0)
@@ -59,13 +67,13 @@ int main(int argc, char **argv)
             }
             else
             {
-                std::cout << "output[i].size() <= 0" << std::endl;
+                // std::cout << "output[i].size() <= 0" << std::endl;
             }
         }
         frame_count++;
         total_frames++;
         int detections = output.size();
-        std::cout << "detections: " << detections << std::endl;
+        // std::cout << "detections: " << detections << std::endl;
         for (int i = 0; i < detections; ++i)
         {
             auto detection = output[i];
@@ -73,13 +81,16 @@ int main(int argc, char **argv)
             {
                 auto box = detection[j].box;
                 auto classId = detection[j].class_id;
+                auto trackId = detection[j].track_id;
 
                 const auto color = yolov5.colors[classId % yolov5.colors.size()];
                 cv::rectangle(frames[i], box, color, 3);
                 // std::cout<< "box.y - 20: "<< box.y - 20 << "\nbox.y - 5: " << box.y - 5 << std::endl;
+                string text = yolov5.class_name[classId].c_str();
+                text = text + " ID: " + std::to_string(trackId);
                 cv::rectangle(frames[i], cv::Point(box.x, box.y - 20), cv::Point(box.x + box.width, box.y), color, cv::FILLED);
-                // cv::putText(frames[i], yolov5.class_name[classId].c_str(), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
-                cv::putText(frames[i], std::to_string(classId), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+                cv::putText(frames[i], text, cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+                // cv::putText(frames[i], std::to_string(classId), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
             }
         }
 
