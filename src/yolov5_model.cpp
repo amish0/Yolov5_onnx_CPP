@@ -8,8 +8,8 @@ YoloV5Model::YoloV5Model()
     nms_threshold = configparameter.yolov5_config_.nms_threshold;
     confidence_threshold = configparameter.yolov5_config_.confidence_threshold;
     batch_size = configparameter.yolov5_config_.batch_size;
-    x_factors = configparameter.width_ / input_width;
-    y_factors = configparameter.height_ / input_height;
+    x_factors = configparameter.yolov5_config_.input_width / input_width;
+    y_factors = configparameter.yolov5_config_.input_height / input_height;
     loadClassList();
     checkCuda();
     loadNet();
