@@ -31,6 +31,7 @@ void ConfigReader::get_cam_info()
         strcpy_s(cam_list_[i].name, ini_reader_.getValue(section, "Name").c_str());
         strcpy_s(cam_list_[i].type, ini_reader_.getValue(section, "Type").c_str());
         strcpy_s(cam_list_[i].url, ini_reader_.getValue(section, "Url").c_str());
+        strcpy_s(cam_list_[i].location, ini_reader_.getValue(section, "Location").c_str());
         cam_list_[i].id = atoi(ini_reader_.getValue(section, "Id").c_str());
         cam_list_[i].width = width_;
         cam_list_[i].height = height_;

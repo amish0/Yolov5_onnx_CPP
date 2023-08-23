@@ -20,7 +20,12 @@ struct cam_info_t
 {
     char name[20];
     char location[20];
+    char type[20];
+    char url[100];
     int id;
+    int width;
+    int height;
+
 };
 
 #endif // CONFIG_H
