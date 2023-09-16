@@ -24,7 +24,7 @@ Install the Required package. and Clone this repository
 ```bash
 git clone https://github.com/amish0/Yolov5_onnx_CPP.git
 cd Yolov5_onnx_CPP
-git checkout yolov5_onnx_CPP_BatchSize
+git checkout yolov5_onnx_CPP
 mkdir build
 cd build
 cmake ..
